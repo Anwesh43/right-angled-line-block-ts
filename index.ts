@@ -197,3 +197,26 @@ class RightAngledLine {
         this.curr.startUpdating(cb)
     }
 }
+
+class Renderer {
+
+    ral : RightAngledLine = new RightAngledLine()
+    animator : Animator = new Animator()
+
+    render(context : CanvasRenderingContext2D) {
+        this.ral.draw(context)
+    }
+
+    handleTap(cb : Function) {
+        this.ral.startUpdating(() => {
+            this.animator.start(() => {
+                cb()
+                this.ral.update(() => {
+                    this.animator.stop()
+                    cb()
+                })
+            })
+        })
+    }
+
+}
