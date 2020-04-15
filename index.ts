@@ -38,18 +38,19 @@ class DrawingUtil {
         context.lineCap = 'round'
         context.lineWidth = Math.min(w, h) / strokeFactor
         context.strokeStyle = colors[i]
-        const sc1 : number = scale
-        const sc2 : number = scale
-        const sc3 : number = scale
+        const sc1 : number = ScaleUtil.divideScale(scale, 0, parts)
+        const sc2 : number = ScaleUtil.divideScale(scale, 1, parts)
+        const sc3 : number = ScaleUtil.divideScale(scale, 2, parts)
         const size = Math.min(w, h) / sizeFactor
         context.save()
-        context.rotate(-Math.PI / 2 * sc2)
+        context.rotate(-(Math.PI / 2) * sc2)
         DrawingUtil.drawLine(context, 0, 0, 0, size * (sc1 - sc3))
         context.restore()
     }
 
     static drawRALNode(context : CanvasRenderingContext2D, i : number, scale : number) {
         const midBlockSize : number = Math.min(w, h) / midBlockSizeFactor
+        context.fillStyle = midBlockColor
         context.save()
         context.translate(w / 2, h / 2)
         context.fillRect(-midBlockSize / 2, -midBlockSize / 2, midBlockSize, midBlockSize)
