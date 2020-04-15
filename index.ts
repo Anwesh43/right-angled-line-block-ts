@@ -1,6 +1,7 @@
 const w : number = window.innerWidth
 const h : number = window.innerHeight
-const scGap : number = 0.02
+const parts : number = 4
+const scGap : number = 0.04
 const delay : number = 20
 const strokeFactor : number = 90
 const sizeFactor : number = 5
@@ -8,7 +9,7 @@ const colors : Array<string> = ['#4a148c', '#880e4f', '#4caf50', '#ff6f00', '#01
 const midBlockColor : string = "#212121"
 const backColor : string = "#BDBDBD"
 const midBlockSizeFactor = 12
-const parts : number = 3
+
 
 class ScaleUtil {
 
@@ -35,22 +36,31 @@ class DrawingUtil {
     }
 
     static drawRightAngleList(context : CanvasRenderingContext2D, i : number, scale : number) {
+        const notLastBlock : boolean = i != colors.length - 1
+        const currParts : number = notLastBlock ? parts : parts - 1
         context.lineCap = 'round'
         context.lineWidth = Math.min(w, h) / strokeFactor
         context.strokeStyle = colors[i]
-        const sc1 : number = ScaleUtil.divideScale(scale, 0, parts)
-        const sc2 : number = ScaleUtil.divideScale(scale, 1, parts)
-        const sc3 : number = ScaleUtil.divideScale(scale, 2, parts)
+        const sc1 : number = ScaleUtil.divideScale(scale, 0, currParts)
+        const sc2 : number = ScaleUtil.divideScale(scale, 1, currParts)
+        const sc3 : number = ScaleUtil.divideScale(scale, 2, currParts)
         const size = Math.min(w, h) / sizeFactor
         context.save()
-        context.rotate(-(Math.PI / 2) * sc2)
+        context.rotate((Math.PI) * sc2)
         DrawingUtil.drawLine(context, 0, 0, 0, size * (sc1 - sc3))
+        if (notLastBlock) {
+            const sc4 : number = ScaleUtil.divideScale(scale, 3, currParts)
+            const midBlockSize : number = (Math.min(w, h) / midBlockSizeFactor) * sc4
+            context.fillStyle = colors[i + 1]
+            context.fillRect(-midBlockSize / 2, -midBlockSize / 2, midBlockSize, midBlockSize)
+        }
         context.restore()
     }
 
     static drawRALNode(context : CanvasRenderingContext2D, i : number, scale : number) {
+
         const midBlockSize : number = Math.min(w, h) / midBlockSizeFactor
-        context.fillStyle = midBlockColor
+        context.fillStyle = colors[i]
         context.save()
         context.translate(w / 2, h / 2)
         context.fillRect(-midBlockSize / 2, -midBlockSize / 2, midBlockSize, midBlockSize)
@@ -99,8 +109,8 @@ class State {
     prevScale : number = 0
     dir : number = 0
 
-    update(cb : Function) {
-        this.scale += scGap * this.dir
+    update(parts : number, cb : Function) {
+        this.scale += (scGap / parts) * this.dir
         if (Math.abs(this.scale - this.prevScale) > 1) {
             this.scale = this.prevScale + this.dir
             this.dir = 0
@@ -159,7 +169,7 @@ class RALNode {
     }
 
     update(cb : Function) {
-        this.state.update(cb)
+        this.state.update(this.i != colors.length - 1 ? parts : parts - 1, cb)
     }
 
     startUpdating(cb : Function) {
@@ -181,12 +191,11 @@ class RALNode {
 
 class RightAngledLine {
 
-    root : RALNode = new RALNode(0)
-    curr : RALNode = this.root
+    curr : RALNode = new RALNode(0)
     dir : number = 1
 
     draw(context : CanvasRenderingContext2D) {
-        this.root.draw(context)
+        this.curr.draw(context)
     }
 
     update(cb : Function) {
